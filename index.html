@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard KPI KIKHB | Politeknik Muadzam Shah</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+  :root {
+    --biru-gelap:  #0D2B55;
+    --biru-sedang: #1A4A8A;
+    --biru-cerah:  #2E6EC4;
+    --biru-lembut: #D6E4F7;
+    --emas:        #C9960C;
+    --emas-cerah:  #F0C040;
+    --emas-lembut: #FFF8E1;
+    --hijau:       #2E7D32;
+    --hijau-lembut:#E8F5E9;
+    --merah:       #C62828;
+    --kelabu:      #607D8B;
+    --bg:          #F0F4FA;
+    --white:       #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: #1f2328;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper { display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 240px;
+    min-width: 240px;
+    background: linear-gradient(180deg, var(--biru-gelap) 0%, var(--biru-sedang) 100%);
+    padding: 24px 16px;
+    color: white;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar h2 { color: var(--emas-cerah); font-size: 1.1rem; margin-bottom: 4px; }
+  .sidebar .sb-sub { color: #B8D0F0; font-size: 0.8rem; margin-bottom: 20px; }
+  .sidebar hr { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 14px 0; }
+  .sidebar label { color: var(--emas-cerah); font-size: 0.78rem; font-weight: 700; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .sidebar select {
+    width: 100%; padding: 8px 10px; border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.1); color: white;
+    font-size: 0.85rem; cursor: pointer; outline: none;
+  }
+  .sidebar select option { background: var(--biru-gelap); color: white; }
+  .sidebar .sb-title { color: var(--emas-cerah); font-size: 0.82rem; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+  .sb-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 0.8rem; color: #B8D0F0; }
+  .sb-row.active { color: var(--emas-cerah); font-weight: 700; }
+  .sb-row .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--kelabu); flex-shrink: 0; }
+  .sb-row.active .dot { background: var(--emas-cerah); }
+  .sb-note { color: #7a9cc0; font-size: 0.72rem; margin-top: 16px; line-height: 1.5; }
+  .sb-note code { background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 3px; font-size: 0.7rem; }
+
+  /* ── MAIN CONTENT ── */
+  .main { flex: 1; padding: 24px 28px; overflow-x: hidden; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--biru-gelap) 0%, var(--biru-sedang) 60%, var(--biru-cerah) 100%);
+    padding: 22px 28px 18px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    border-bottom: 4px solid var(--emas);
+    box-shadow: 0 4px 18px rgba(13,43,85,0.18);
+  }
+  .header h1 { color: var(--emas-cerah); font-size: 1.55rem; font-weight: 800; margin-bottom: 4px; }
+  .header p  { color: #B8D0F0; font-size: 0.85rem; }
+
+  /* ── BANNER ── */
+  .banner-aktif {
+    background: linear-gradient(90deg, var(--biru-gelap), var(--biru-sedang));
+    border-left: 6px solid var(--emas);
+    color: white;
+    padding: 13px 18px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 10px rgba(13,43,85,0.15);
+  }
+  .banner-aktif strong { color: var(--emas-cerah); }
+  .banner-aktif .jabatan-besar { color: var(--emas-cerah); font-size: 1.1rem; font-weight: 800; }
+  .banner-akan {
+    background: linear-gradient(90deg, #A67800, var(--emas));
+    border-left: 6px solid var(--emas-cerah);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 0.84rem;
+    box-shadow: 0 2px 8px rgba(201,150,12,0.18);
+  }
+
+  /* ── SECTION TITLE ── */
+  .sec-title {
+    font-size: 0.95rem; font-weight: 700; color: var(--biru-gelap);
+    border-left: 4px solid var(--emas);
+    padding-left: 10px;
+    margin: 22px 0 12px;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 20px; }
+  .tl-card {
+    min-width: 110px; flex: 1; border-radius: 10px; padding: 14px 10px;
+    text-align: center; font-size: 0.8rem; font-weight: 600;
+    border: 2px solid transparent; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .tl-card .tl-year  { font-size: 1.1rem; font-weight: 800; margin: 4px 0 2px; }
+  .tl-card .tl-dept  { font-size: 0.88rem; font-weight: 700; margin-bottom: 6px; }
+  .tl-card .tl-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; color: white; }
+  .tl-selesai  { background: var(--hijau-lembut); border-color: var(--hijau);  color: var(--hijau); }
+  .tl-selesai  .tl-badge { background: var(--hijau); }
+  .tl-aktif    { background: var(--biru-lembut); border-color: var(--biru-cerah); color: var(--biru-gelap); }
+  .tl-aktif    .tl-badge { background: var(--biru-cerah); }
+  .tl-akan     { background: #F5F5F5; border-color: #BDBDBD; color: var(--kelabu); }
+  .tl-akan     .tl-badge { background: var(--kelabu); }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .kpi-card {
+    background: white; border-radius: 12px; padding: 18px 16px;
+    border-top: 4px solid var(--biru-cerah);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    text-align: center;
+  }
+  .kpi-card.gold  { border-top-color: var(--emas); }
+  .kpi-card.green { border-top-color: var(--hijau); }
+  .kpi-label { font-size: 0.72rem; color: var(--kelabu); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 600; margin-bottom: 8px; }
+  .kpi-value { font-size: 2rem; font-weight: 800; color: var(--biru-gelap); line-height: 1.1; }
+  .kpi-value.gold  { color: var(--emas); }
+  .kpi-value.green { color: var(--hijau); }
+  .kpi-value.blue  { color: var(--biru-cerah); }
+  .kpi-sub   { font-size: 0.72rem; color: var(--kelabu); margin-top: 5px; }
+
+  /* ── FILTER BAR ── */
+  .filter-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .filter-bar label { font-size: 0.8rem; font-weight: 700; color: var(--biru-gelap); }
+  .filter-bar select {
+    padding: 6px 12px; border-radius: 6px; border: 1px solid #CBD5E1;
+    font-size: 0.82rem; color: var(--biru-gelap); outline: none; cursor: pointer;
+    background: white;
+  }
+
+  /* ── TABLE ── */
+  .tbl-wrap { overflow-x: auto; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  thead th { background: var(--biru-gelap); color: var(--emas-cerah); padding: 11px 13px; text-align: left; font-weight: 700; white-space: nowrap; }
+  tbody td { padding: 9px 13px; border-bottom: 1px solid #E5EAF2; vertical-align: middle; }
+  tbody tr:nth-child(even) td { background: #F7FAFF; }
+  tbody tr:hover td { background: var(--biru-lembut); }
+
+  .badge {
+    display: inline-block; padding: 2px 9px; border-radius: 4px;
+    font-size: 0.72rem; font-weight: 700; color: white; white-space: nowrap;
+  }
+  .badge-s { background: var(--hijau); }
+  .badge-a { background: var(--biru-cerah); }
+  .badge-b { background: var(--kelabu); }
+
+  /* ── PROGRESS BAR inline ── */
+  .prog-wrap { display: flex; align-items: center; gap: 7px; }
+  .prog-bar  { width: 110px; height: 8px; background: #E0E0E0; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+  .prog-fill { height: 100%; border-radius: 4px; }
+  .prog-pct  { font-size: 0.72rem; color: var(--kelabu); }
+
+  /* ── CHART CONTAINER ── */
+  .chart-wrap {
+    background: white; border-radius: 12px; padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07); margin-bottom: 24px;
+  }
+
+  /* ── EXPANDER / NOTA ── */
+  details { background: white; border-radius: 10px; padding: 14px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 24px; }
+  summary { cursor: pointer; font-weight: 700; color: var(--biru-gelap); font-size: 0.88rem; list-style: none; display: flex; align-items: center; gap: 6px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "▶"; font-size: 0.65rem; transition: transform 0.2s; }
+  details[open] summary::before { transform: rotate(90deg); }
+  .nota-body { margin-top: 12px; font-size: 0.82rem; color: #374151; line-height: 1.7; }
+  .nota-body table { margin-top: 10px; }
+  .nota-body thead th { font-size: 0.78rem; padding: 7px 12px; }
+  .nota-body tbody td { font-size: 0.78rem; padding: 6px 12px; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center; color: var(--kelabu); font-size: 0.74rem;
+    border-top: 1px solid #DDE3EE; padding: 14px 0; margin-top: 10px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .wrapper { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 540px) {
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar">
+    <h2>🏛️ KIKHB PMS</h2>
+    <p class="sb-sub">Politeknik Muadzam Shah</p>
+    <hr>
+    <label>📅 Pilih Tahun</label>
+    <select id="tahunSelect" onchange="renderAll()">
+      <option value="2027">2027 — JRKV</option>
+      <option value="2028">2028 — JKM</option>
+      <option value="2029">2029 — JPH</option>
+      <option value="2030" selected>2030 — JPA</option>
+      <option value="2031">2031 — JP</option>
+      <option value="2032">2032 — JMSK</option>
+      <option value="2033">2033 — JTMK</option>
+    </select>
+    <hr>
+    <div class="sb-title">📋 Jadual Giliran</div>
+    <div id="sbGiliran"></div>
+    <hr>
+    <p class="sb-note">📂 Data tertanam dalam fail <code>index.html</code> ini.</p>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="header">
+      <h1>🏛️ Dashboard KPI — KIK Horizon Baharu (KIKHB)</h1>
+      <p>Politeknik Muadzam Shah (PMS) &nbsp;|&nbsp; Pemantauan Kemajuan Giliran Jabatan 2027–2033</p>
+    </div>
+
+    <!-- Banner -->
+    <div id="bannerAktif" class="banner-aktif"></div>
+    <div id="bannerAkan" class="banner-akan"></div>
+
+    <!-- Timeline -->
+    <div class="sec-title">📆 Garis Masa Giliran KIKHB 2027–2033</div>
+    <div class="timeline" id="timeline"></div>
+
+    <!-- KPI Cards -->
+    <div class="sec-title">📊 Petunjuk Prestasi Utama (KPI)</div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <!-- Bar Chart -->
+    <div class="sec-title">📉 Kemajuan Mengikut Fasa KIKHB</div>
+    <div class="chart-wrap">
+      <canvas id="fasaChart" height="90"></canvas>
+    </div>
+
+    <!-- Milestones Table -->
+    <div class="sec-title">📋 Senarai Semak Tugasan (Milestones)</div>
+    <div class="filter-bar">
+      <label>Tapis Fasa:</label>
+      <select id="fasaFilter" onchange="renderTable()">
+        <option value="Semua Fasa">Semua Fasa</option>
+        <option value="Fasa 1: Persediaan">Fasa 1: Persediaan</option>
+        <option value="Fasa 2: Pelaksanaan">Fasa 2: Pelaksanaan</option>
+        <option value="Fasa 3: Pemantauan">Fasa 3: Pemantauan</option>
+        <option value="Fasa 4: Konvensyen">Fasa 4: Konvensyen</option>
+        <option value="Fasa 5: Penutupan">Fasa 5: Penutupan</option>
+      </select>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Fasa</th><th>Milestone / Tugasan</th><th>Status</th><th>Kemajuan</th><th>Tarikh Mula</th><th>Tarikh Tamat</th></tr>
+        </thead>
+        <tbody id="milestoneBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Summary Table -->
+    <div class="sec-title">📌 Ringkasan Status Semua Tahun</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Tahun</th><th>Jabatan</th><th>Nama Penuh</th><th>Status</th><th>Kemajuan</th><th>Tugasan</th></tr>
+        </thead>
+        <tbody id="summaryBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Nota -->
+    <details>
+      <summary>ℹ️ Cara Kemaskini Data Dashboard</summary>
+      <div class="nota-body">
+        <p><strong>Dashboard versi HTML ini menggunakan data yang tertanam terus dalam fail <code>index.html</code>.</strong></p>
+        <p style="margin-top:8px;">Untuk kemaskini data, buka <code>index.html</code> dalam editor teks, cari bahagian <code>const DATA = [...]</code> di dalam tag <code>&lt;script&gt;</code>, dan ubah nilai <strong>status</strong> serta <strong>peratusan</strong> mengikut keperluan.</p>
+        <table>
+          <thead><tr><th>Lajur</th><th>Nilai Dibenarkan</th></tr></thead>
+          <tbody>
+            <tr><td><code>status</code></td><td>Selesai / Aktif / Belum Mula</td></tr>
+            <tr><td><code>peratusan</code></td><td>0 hingga 100</td></tr>
+            <tr><td><code>tahun</code></td><td>2027 hingga 2033</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:10px;">Simpan fail dan <strong>refresh</strong> browser — tiada server diperlukan.</p>
+      </div>
+    </details>
+
+    <div class="footer">
+      🏛️ Dashboard KPI KIKHB &nbsp;|&nbsp; Politeknik Muadzam Shah (PMS) &nbsp;|&nbsp;
+      Versi 1.0 &nbsp;·&nbsp; Dibangunkan menggunakan HTML5 &amp; Chart.js
+    </div>
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  DATA GILIRAN
+// ═══════════════════════════════════════
+const GILIRAN = {
+  2027: "JRKV", 2028: "JKM", 2029: "JPH",
+  2030: "JPA",  2031: "JP",  2032: "JMSK", 2033: "JTMK"
+};
+const NAMA = {
+  JRKV: "Jabatan Rekabentuk & Kejuruteraan Vokasional",
+  JKM:  "Jabatan Kejuruteraan Mekanikal",
+  JPH:  "Jabatan Perhotelan",
+  JPA:  "Jabatan Perakaunan",
+  JP:   "Jabatan Perdagangan",
+  JMSK: "Jabatan Matematik, Sains & Komputer",
+  JTMK: "Jabatan Teknologi Maklumat & Komunikasi"
+};
+const FASA_URUTAN = [
+  "Fasa 1: Persediaan","Fasa 2: Pelaksanaan",
+  "Fasa 3: Pemantauan","Fasa 4: Konvensyen","Fasa 5: Penutupan"
+];
+
+// ═══════════════════════════════════════
+//  DATA MILESTONES (sama seperti CSV)
+// ═══════════════════════════════════════
+const DATA = [
+  // ─── 2027 JRKV (Selesai) ───
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 1: Persediaan",milestone:"Mesyuarat Pra-Pelancaran",status:"Selesai",tarikh_mula:"2027-01-10",tarikh_tamat:"2027-01-15",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 1: Persediaan",milestone:"Pembentukan Jawatankuasa KIKHB",status:"Selesai",tarikh_mula:"2027-01-16",tarikh_tamat:"2027-01-31",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 1: Persediaan",milestone:"Penyediaan Pelan Tindakan",status:"Selesai",tarikh_mula:"2027-02-01",tarikh_tamat:"2027-02-15",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 1: Persediaan",milestone:"Penetapan Sasaran KPI",status:"Selesai",tarikh_mula:"2027-02-16",tarikh_tamat:"2027-02-28",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 2: Pelaksanaan",milestone:"Pelancaran Program KIKHB",status:"Selesai",tarikh_mula:"2027-03-01",tarikh_tamat:"2027-03-10",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 2: Pelaksanaan",milestone:"Aktiviti Pembangunan Pelajar",status:"Selesai",tarikh_mula:"2027-03-11",tarikh_tamat:"2027-05-30",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 2: Pelaksanaan",milestone:"Program Hubungan Industri",status:"Selesai",tarikh_mula:"2027-04-01",tarikh_tamat:"2027-06-30",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 2: Pelaksanaan",milestone:"Pelaksanaan Inovasi & Kreativiti",status:"Selesai",tarikh_mula:"2027-04-15",tarikh_tamat:"2027-07-31",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 3: Pemantauan",milestone:"Pemantauan Bulanan (Q1-Q2)",status:"Selesai",tarikh_mula:"2027-01-01",tarikh_tamat:"2027-06-30",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 3: Pemantauan",milestone:"Laporan Kemajuan Pertengahan Tahun",status:"Selesai",tarikh_mula:"2027-07-01",tarikh_tamat:"2027-07-15",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 3: Pemantauan",milestone:"Audit Dalaman KIKHB",status:"Selesai",tarikh_mula:"2027-07-16",tarikh_tamat:"2027-08-15",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 3: Pemantauan",milestone:"Pemantauan Bulanan (Q3-Q4)",status:"Selesai",tarikh_mula:"2027-07-01",tarikh_tamat:"2027-12-31",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 4: Konvensyen",milestone:"Penyediaan Kertas Kerja Konvensyen",status:"Selesai",tarikh_mula:"2027-08-01",tarikh_tamat:"2027-09-30",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 4: Konvensyen",milestone:"Latihan Pembentangan Pasukan",status:"Selesai",tarikh_mula:"2027-09-01",tarikh_tamat:"2027-10-15",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 4: Konvensyen",milestone:"Penyertaan Konvensyen KIKHB",status:"Selesai",tarikh_mula:"2027-10-20",tarikh_tamat:"2027-10-22",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 4: Konvensyen",milestone:"Pencapaian Anugerah/Pingat",status:"Selesai",tarikh_mula:"2027-10-22",tarikh_tamat:"2027-10-22",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 5: Penutupan",milestone:"Laporan Akhir KIKHB",status:"Selesai",tarikh_mula:"2027-11-01",tarikh_tamat:"2027-11-30",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 5: Penutupan",milestone:"Majlis Apresiasi Pasukan",status:"Selesai",tarikh_mula:"2027-12-01",tarikh_tamat:"2027-12-10",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 5: Penutupan",milestone:"Penyerahan Dokumen Arkib",status:"Selesai",tarikh_mula:"2027-12-11",tarikh_tamat:"2027-12-20",peratusan:100},
+  {tahun:2027,jabatan:"JRKV",fasa:"Fasa 5: Penutupan",milestone:"Pembentangan Kepada Pengurusan",status:"Selesai",tarikh_mula:"2027-12-21",tarikh_tamat:"2027-12-31",peratusan:100},
+  // ─── 2028 JKM (Selesai) ───
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 1: Persediaan",milestone:"Mesyuarat Pra-Pelancaran",status:"Selesai",tarikh_mula:"2028-01-10",tarikh_tamat:"2028-01-15",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 1: Persediaan",milestone:"Pembentukan Jawatankuasa KIKHB",status:"Selesai",tarikh_mula:"2028-01-16",tarikh_tamat:"2028-01-31",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 1: Persediaan",milestone:"Penyediaan Pelan Tindakan",status:"Selesai",tarikh_mula:"2028-02-01",tarikh_tamat:"2028-02-15",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 1: Persediaan",milestone:"Penetapan Sasaran KPI",status:"Selesai",tarikh_mula:"2028-02-16",tarikh_tamat:"2028-02-28",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 2: Pelaksanaan",milestone:"Pelancaran Program KIKHB",status:"Selesai",tarikh_mula:"2028-03-01",tarikh_tamat:"2028-03-10",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 2: Pelaksanaan",milestone:"Aktiviti Pembangunan Pelajar",status:"Selesai",tarikh_mula:"2028-03-11",tarikh_tamat:"2028-05-30",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 2: Pelaksanaan",milestone:"Program Hubungan Industri",status:"Selesai",tarikh_mula:"2028-04-01",tarikh_tamat:"2028-06-30",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 2: Pelaksanaan",milestone:"Pelaksanaan Inovasi & Kreativiti",status:"Selesai",tarikh_mula:"2028-04-15",tarikh_tamat:"2028-07-31",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 3: Pemantauan",milestone:"Pemantauan Bulanan (Q1-Q2)",status:"Selesai",tarikh_mula:"2028-01-01",tarikh_tamat:"2028-06-30",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 3: Pemantauan",milestone:"Laporan Kemajuan Pertengahan Tahun",status:"Selesai",tarikh_mula:"2028-07-01",tarikh_tamat:"2028-07-15",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 3: Pemantauan",milestone:"Audit Dalaman KIKHB",status:"Selesai",tarikh_mula:"2028-07-16",tarikh_tamat:"2028-08-15",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 3: Pemantauan",milestone:"Pemantauan Bulanan (Q3-Q4)",status:"Selesai",tarikh_mula:"2028-07-01",tarikh_tamat:"2028-12-31",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 4: Konvensyen",milestone:"Penyediaan Kertas Kerja Konvensyen",status:"Selesai",tarikh_mula:"2028-08-01",tarikh_tamat:"2028-09-30",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 4: Konvensyen",milestone:"Latihan Pembentangan Pasukan",status:"Selesai",tarikh_mula:"2028-09-01",tarikh_tamat:"2028-10-15",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 4: Konvensyen",milestone:"Penyertaan Konvensyen KIKHB",status:"Selesai",tarikh_mula:"2028-10-20",tarikh_tamat:"2028-10-22",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 4: Konvensyen",milestone:"Pencapaian Anugerah/Pingat",status:"Selesai",tarikh_mula:"2028-10-22",tarikh_tamat:"2028-10-22",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 5: Penutupan",milestone:"Laporan Akhir KIKHB",status:"Selesai",tarikh_mula:"2028-11-01",tarikh_tamat:"2028-11-30",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 5: Penutupan",milestone:"Majlis Apresiasi Pasukan",status:"Selesai",tarikh_mula:"2028-12-01",tarikh_tamat:"2028-12-10",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 5: Penutupan",milestone:"Penyerahan Dokumen Arkib",status:"Selesai",tarikh_mula:"2028-12-11",tarikh_tamat:"2028-12-20",peratusan:100},
+  {tahun:2028,jabatan:"JKM",fasa:"Fasa 5: Penutupan",milestone:"Pembentangan Kepada Pengurusan",status:"Selesai",tarikh_mula:"2028-12-21",tarikh_tamat:"2028-12-31",peratusan:100},
+  // ─── 2029 JPH (Selesai) ───
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 1: Persediaan",milestone:"Mesyuarat Pra-Pelancaran",status:"Selesai",tarikh_mula:"2029-01-10",tarikh_tamat:"2029-01-15",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 1: Persediaan",milestone:"Pembentukan Jawatankuasa KIKHB",status:"Selesai",tarikh_mula:"2029-01-16",tarikh_tamat:"2029-01-31",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 1: Persediaan",milestone:"Penyediaan Pelan Tindakan",status:"Selesai",tarikh_mula:"2029-02-01",tarikh_tamat:"2029-02-15",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 1: Persediaan",milestone:"Penetapan Sasaran KPI",status:"Selesai",tarikh_mula:"2029-02-16",tarikh_tamat:"2029-02-28",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 2: Pelaksanaan",milestone:"Pelancaran Program KIKHB",status:"Selesai",tarikh_mula:"2029-03-01",tarikh_tamat:"2029-03-10",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 2: Pelaksanaan",milestone:"Aktiviti Pembangunan Pelajar",status:"Selesai",tarikh_mula:"2029-03-11",tarikh_tamat:"2029-05-30",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 2: Pelaksanaan",milestone:"Program Hubungan Industri",status:"Selesai",tarikh_mula:"2029-04-01",tarikh_tamat:"2029-06-30",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 2: Pelaksanaan",milestone:"Pelaksanaan Inovasi & Kreativiti",status:"Selesai",tarikh_mula:"2029-04-15",tarikh_tamat:"2029-07-31",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 3: Pemantauan",milestone:"Pemantauan Bulanan (Q1-Q2)",status:"Selesai",tarikh_mula:"2029-01-01",tarikh_tamat:"2029-06-30",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 3: Pemantauan",milestone:"Laporan Kemajuan Pertengahan Tahun",status:"Selesai",tarikh_mula:"2029-07-01",tarikh_tamat:"2029-07-15",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 3: Pemantauan",milestone:"Audit Dalaman KIKHB",status:"Selesai",tarikh_mula:"2029-07-16",tarikh_tamat:"2029-08-15",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 3: Pemantauan",milestone:"Pemantauan Bulanan (Q3-Q4)",status:"Selesai",tarikh_mula:"2029-07-01",tarikh_tamat:"2029-12-31",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 4: Konvensyen",milestone:"Penyediaan Kertas Kerja Konvensyen",status:"Selesai",tarikh_mula:"2029-08-01",tarikh_tamat:"2029-09-30",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 4: Konvensyen",milestone:"Latihan Pembentangan Pasukan",status:"Selesai",tarikh_mula:"2029-09-01",tarikh_tamat:"2029-10-15",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 4: Konvensyen",milestone:"Penyertaan Konvensyen KIKHB",status:"Selesai",tarikh_mula:"2029-10-20",tarikh_tamat:"2029-10-22",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 4: Konvensyen",milestone:"Pencapaian Anugerah/Pingat",status:"Selesai",tarikh_mula:"2029-10-22",tarikh_tamat:"2029-10-22",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 5: Penutupan",milestone:"Laporan Akhir KIKHB",status:"Selesai",tarikh_mula:"2029-11-01",tarikh_tamat:"2029-11-30",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 5: Penutupan",milestone:"Majlis Apresiasi Pasukan",status:"Selesai",tarikh_mula:"2029-12-01",tarikh_tamat:"2029-12-10",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 5: Penutupan",milestone:"Penyerahan Dokumen Arkib",status:"Selesai",tarikh_mula:"2029-12-11",tarikh_tamat:"2029-12-20",peratusan:100},
+  {tahun:2029,jabatan:"JPH",fasa:"Fasa 5: Penutupan",milestone:"Pembentangan Kepada Pengurusan",status:"Selesai",tarikh_mula:"2029-12-21",tarikh_tamat:"2029-12-31",peratusan:100},
+  // ─── 2030 JPA (Aktif) ───
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 1: Persediaan",milestone:"Mesyuarat Pra-Pelancaran",status:"Selesai",tarikh_mula:"2030-01-10",tarikh_tamat:"2030-01-15",peratusan:100},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 1: Persediaan",milestone:"Pembentukan Jawatankuasa KIKHB",status:"Selesai",tarikh_mula:"2030-01-16",tarikh_tamat:"2030-01-31",peratusan:100},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 1: Persediaan",milestone:"Penyediaan Pelan Tindakan",status:"Selesai",tarikh_mula:"2030-02-01",tarikh_tamat:"2030-02-15",peratusan:100},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 1: Persediaan",milestone:"Penetapan Sasaran KPI",status:"Selesai",tarikh_mula:"2030-02-16",tarikh_tamat:"2030-02-28",peratusan:100},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 2: Pelaksanaan",milestone:"Pelancaran Program KIKHB",status:"Aktif",tarikh_mula:"2030-03-01",tarikh_tamat:"2030-03-10",peratusan:75},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 2: Pelaksanaan",milestone:"Aktiviti Pembangunan Pelajar",status:"Aktif",tarikh_mula:"2030-03-11",tarikh_tamat:"2030-05-30",peratusan:60},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 2: Pelaksanaan",milestone:"Program Hubungan Industri",status:"Aktif",tarikh_mula:"2030-04-01",tarikh_tamat:"2030-06-30",peratusan:50},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 2: Pelaksanaan",milestone:"Pelaksanaan Inovasi & Kreativiti",status:"Belum Mula",tarikh_mula:"2030-04-15",tarikh_tamat:"2030-07-31",peratusan:0},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 3: Pemantauan",milestone:"Pemantauan Bulanan (Q1-Q2)",status:"Aktif",tarikh_mula:"2030-01-01",tarikh_tamat:"2030-06-30",peratusan:55},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 3: Pemantauan",milestone:"Laporan Kemajuan Pertengahan Tahun",status:"Belum Mula",tarikh_mula:"2030-07-01",tarikh_tamat:"2030-07-15",peratusan:0},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 3: Pemantauan",milestone:"Audit Dalaman KIKHB",status:"Belum Mula",tarikh_mula:"2030-07-16",tarikh_tamat:"2030-08-15",peratusan:0},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 3: Pemantauan",milestone:"Pemantauan Bulanan (Q3-Q4)",status:"Belum Mula",tarikh_mula:"2030-07-01",tarikh_tamat:"2030-12-31",peratusan:0},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 4: Konvensyen",milestone:"Penyediaan Kertas Kerja Konvensyen",status:"Belum Mula",tarikh_mula:"2030-08-01",tarikh_tamat:"2030-09-30",peratusan:0},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 4: Konvensyen",milestone:"Latihan Pembentangan Pasukan",status:"Belum Mula",tarikh_mula:"2030-09-01",tarikh_tamat:"2030-10-15",peratusan:0},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 4: Konvensyen",milestone:"Penyertaan Konvensyen KIKHB",status:"Belum Mula",tarikh_mula:"2030-10-20",tarikh_tamat:"2030-10-22",peratusan:0},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 4: Konvensyen",milestone:"Pencapaian Anugerah/Pingat",status:"Belum Mula",tarikh_mula:"2030-10-22",tarikh_tamat:"2030-10-22",peratusan:0},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 5: Penutupan",milestone:"Laporan Akhir KIKHB",status:"Belum Mula",tarikh_mula:"2030-11-01",tarikh_tamat:"2030-11-30",peratusan:0},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 5: Penutupan",milestone:"Majlis Apresiasi Pasukan",status:"Belum Mula",tarikh_mula:"2030-12-01",tarikh_tamat:"2030-12-10",peratusan:0},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 5: Penutupan",milestone:"Penyerahan Dokumen Arkib",status:"Belum Mula",tarikh_mula:"2030-12-11",tarikh_tamat:"2030-12-20",peratusan:0},
+  {tahun:2030,jabatan:"JPA",fasa:"Fasa 5: Penutupan",milestone:"Pembentangan Kepada Pengurusan",status:"Belum Mula",tarikh_mula:"2030-12-21",tarikh_tamat:"2030-12-31",peratusan:0},
+  // ─── 2031–2033 (Belum Mula) ───
+  ...["JP","JMSK","JTMK"].flatMap((jab, ji) => {
+    const yr = 2031 + ji;
+    return FASA_URUTAN.flatMap(fasa => [
+      "Mesyuarat Pra-Pelancaran","Pembentukan Jawatankuasa KIKHB",
+      "Penyediaan Pelan Tindakan","Penetapan Sasaran KPI",
+      "Pelancaran Program KIKHB","Aktiviti Pembangunan Pelajar",
+      "Program Hubungan Industri","Pelaksanaan Inovasi & Kreativiti",
+      "Pemantauan Bulanan (Q1-Q2)","Laporan Kemajuan Pertengahan Tahun",
+      "Audit Dalaman KIKHB","Pemantauan Bulanan (Q3-Q4)",
+      "Penyediaan Kertas Kerja Konvensyen","Latihan Pembentangan Pasukan",
+      "Penyertaan Konvensyen KIKHB","Pencapaian Anugerah/Pingat",
+      "Laporan Akhir KIKHB","Majlis Apresiasi Pasukan",
+      "Penyerahan Dokumen Arkib","Pembentangan Kepada Pengurusan"
+    ].filter((_,i) => {
+      // assign milestones to fasa index
+      const fi = FASA_URUTAN.indexOf(fasa);
+      const ranges = [[0,4],[4,8],[8,12],[12,16],[16,20]];
+      return i >= ranges[fi][0] && i < ranges[fi][1];
+    }).map(ms => ({
+      tahun:yr, jabatan:jab, fasa:fasa, milestone:ms,
+      status:"Belum Mula",
+      tarikh_mula:`${yr}-01-01`, tarikh_tamat:`${yr}-12-31`,
+      peratusan:0
+    })));
+  })
+];
+
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+let fasaChart = null;
+
+function getTahun() { return parseInt(document.getElementById('tahunSelect').value); }
+
+function statusTahun(t, aktif) {
+  if (t < aktif) return "Selesai";
+  if (t === aktif) return "Aktif";
+  return "Akan Datang";
+}
+
+function badgeHtml(status) {
+  if (status === "Selesai")    return `<span class="badge badge-s">✅ Selesai</span>`;
+  if (status === "Aktif")      return `<span class="badge badge-a">🔵 Aktif</span>`;
+  return `<span class="badge badge-b">⏸ Belum Mula</span>`;
+}
+
+function progHtml(pct, status) {
+  const col = status==="Selesai" ? "#2E7D32" : (status==="Aktif" ? "#2E6EC4" : "#BDBDBD");
+  return `<div class="prog-wrap">
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${col}"></div></div>
+    <span class="prog-pct">${pct}%</span>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+//  RENDER FUNCTIONS
+// ═══════════════════════════════════════
+function renderSidebar(aktif) {
+  let html = '';
+  for (const [t, j] of Object.entries(GILIRAN)) {
+    const yr = parseInt(t);
+    const isAktif = yr === aktif;
+    html += `<div class="sb-row ${isAktif?'active':''}">
+      <div class="dot"></div>
+      <span><strong>${t}</strong> — ${j}</span>
+    </div>`;
+  }
+  document.getElementById('sbGiliran').innerHTML = html;
+}
+
+function renderBanner(aktif) {
+  const jab  = GILIRAN[aktif];
+  const nama = NAMA[jab];
+  document.getElementById('bannerAktif').innerHTML =
+    `🔵 &nbsp;<strong>JABATAN BERTUGAS ${aktif}:</strong> &nbsp;
+     <span class="jabatan-besar">${jab}</span> &nbsp;— ${nama}`;
+
+  const yrNext = aktif + 1;
+  const jabNext = GILIRAN[yrNext];
+  const el = document.getElementById('bannerAkan');
+  if (jabNext) {
+    el.innerHTML = `⚠️ &nbsp;<strong>AMARAN GILIRAN SETERUSNYA (${yrNext}):</strong> &nbsp;
+      Jabatan <strong>${jabNext}</strong> (${NAMA[jabNext]}) perlu mula membuat persediaan awal.`;
+    el.style.display = '';
+  } else {
+    el.innerHTML = `ℹ️ Ini adalah tahun giliran terakhir dalam kitaran 2027–2033.`;
+    el.style.display = '';
+  }
+}
+
+function renderTimeline(aktif) {
+  const icons = { Selesai:"✅", Aktif:"🔵", "Akan Datang":"🔲" };
+  const labels = { Selesai:"Selesai", Aktif:"Aktif", "Akan Datang":"Akan Datang" };
+  let html = '';
+  for (const [t, j] of Object.entries(GILIRAN)) {
+    const s = statusTahun(parseInt(t), aktif);
+    const cls = s === "Selesai" ? "tl-selesai" : (s === "Aktif" ? "tl-aktif" : "tl-akan");
+    html += `<div class="tl-card ${cls}">
+      <div style="font-size:1.3rem">${icons[s]}</div>
+      <div class="tl-year">${t}</div>
+      <div class="tl-dept">${j}</div>
+      <span class="tl-badge">${labels[s]}</span>
+    </div>`;
+  }
+  document.getElementById('timeline').innerHTML = html;
+}
+
+function renderKPI(aktif) {
+  const rows = DATA.filter(d => d.tahun === aktif);
+  const total = rows.length;
+  const selesai = rows.filter(d => d.status === "Selesai").length;
+  const pctAvg = total ? Math.round(rows.reduce((s,d) => s + d.peratusan, 0) / total * 10) / 10 : 0;
+
+  // fasa selesai
+  let fasaSelesai = 0;
+  for (const f of FASA_URUTAN) {
+    const fr = rows.filter(d => d.fasa === f);
+    if (fr.length && fr.every(d => d.status === "Selesai")) fasaSelesai++;
+  }
+
+  // konvensyen
+  const konv = rows.filter(d => d.fasa === "Fasa 4: Konvensyen");
+  const pctKonv = konv.length ? Math.round(konv.reduce((s,d) => s + d.peratusan, 0) / konv.length) : 0;
+  let statusKonv, warnKonv;
+  if (pctKonv === 100)    { statusKonv = "✅ Tercapai";       warnKonv = "#2E7D32"; }
+  else if (pctKonv > 0)   { statusKonv = "⏳ Dalam Proses";   warnKonv = "#2E6EC4"; }
+  else                    { statusKonv = "⏸ Belum Mula";      warnKonv = "#607D8B"; }
+
+  const warnPct = pctAvg >= 80 ? "#2E7D32" : (pctAvg >= 40 ? "#C9960C" : "#C62828");
+
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-label">🏢 Jabatan Bertugas</div>
+      <div class="kpi-value" style="font-size:1.6rem">${GILIRAN[aktif]}</div>
+      <div class="kpi-sub">${aktif}</div>
+    </div>
+    <div class="kpi-card gold">
+      <div class="kpi-label">📈 % Kemajuan Keseluruhan</div>
+      <div class="kpi-value" style="color:${warnPct}">${pctAvg}%</div>
+      <div class="kpi-sub">${selesai}/${total} tugasan selesai</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">✅ Fasa Selesai</div>
+      <div class="kpi-value green">${fasaSelesai}</div>
+      <div class="kpi-sub">daripada ${FASA_URUTAN.length} fasa</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">🏆 Status Sasaran Konvensyen</div>
+      <div class="kpi-value" style="font-size:1rem;color:${warnKonv}">${statusKonv}</div>
+      <div class="kpi-sub">${pctKonv}% kemajuan Fasa 4</div>
+    </div>`;
+}
+
+function renderChart(aktif) {
+  const rows = DATA.filter(d => d.tahun === aktif);
+  const labels = FASA_URUTAN.map(f => f.replace("Fasa ","F").replace(": "," — "));
+  const values = FASA_URUTAN.map(f => {
+    const fr = rows.filter(d => d.fasa === f);
+    return fr.length ? Math.round(fr.reduce((s,d) => s + d.peratusan, 0) / fr.length * 10) / 10 : 0;
+  });
+  const colors = ["#0D2B55","#1A4A8A","#2E6EC4","#C9960C","#7B4FA0"];
+
+  if (fasaChart) fasaChart.destroy();
+  const ctx = document.getElementById('fasaChart').getContext('2d');
+  fasaChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: FASA_URUTAN,
+      datasets: [{
+        label: '% Kemajuan',
+        data: values,
+        backgroundColor: colors,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.raw}%` } }
+      },
+      scales: {
+        y: {
+          min: 0, max: 115,
+          ticks: { callback: v => v + '%' },
+          grid: { color: '#EEF2F9' }
+        },
+        x: { grid: { display: false } }
+      },
+      animation: { duration: 500 }
+    },
+    plugins: [{
+      id: 'sasaran',
+      afterDraw(chart) {
+        const { ctx: c, chartArea: { left, right }, scales: { y } } = chart;
+        const yPos = y.getPixelForValue(100);
+        c.save();
+        c.setLineDash([5,5]);
+        c.strokeStyle = '#2E7D32';
+        c.lineWidth = 1.5;
+        c.beginPath(); c.moveTo(left, yPos); c.lineTo(right, yPos); c.stroke();
+        c.fillStyle = '#2E7D32'; c.font = '11px Inter, sans-serif';
+        c.fillText('Sasaran 100%', right - 90, yPos - 5);
+        c.restore();
+      }
+    }]
+  });
+}
+
+function renderTable() {
+  const aktif = getTahun();
+  const fasa = document.getElementById('fasaFilter').value;
+  let rows = DATA.filter(d => d.tahun === aktif);
+  if (fasa !== "Semua Fasa") rows = rows.filter(d => d.fasa === fasa);
+
+  const html = rows.map(r => `
+    <tr>
+      <td><strong>${r.fasa}</strong></td>
+      <td>${r.milestone}</td>
+      <td>${badgeHtml(r.status)}</td>
+      <td>${progHtml(r.peratusan, r.status)}</td>
+      <td>${r.tarikh_mula}</td>
+      <td>${r.tarikh_tamat}</td>
+    </tr>`).join('');
+  document.getElementById('milestoneBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:#9e9e9e;padding:20px">Tiada data</td></tr>';
+}
+
+function renderSummary(aktif) {
+  const html = Object.entries(GILIRAN).map(([t, j]) => {
+    const yr = parseInt(t);
+    const rows = DATA.filter(d => d.tahun === yr);
+    const total = rows.length;
+    const sel = rows.filter(d => d.status === "Selesai").length;
+    const pct = total ? Math.round(rows.reduce((s,d) => s + d.peratusan, 0) / total * 10) / 10 : 0;
+    const st = statusTahun(yr, aktif);
+    const badge = st === "Selesai" ? badgeHtml("Selesai") : (st === "Aktif" ? badgeHtml("Aktif") : badgeHtml("Belum Mula"));
+    const col = pct === 100 ? "#2E7D32" : (pct > 0 ? "#2E6EC4" : "#BDBDBD");
+    return `<tr>
+      <td><strong>${t}</strong></td>
+      <td><strong>${j}</strong></td>
+      <td style="font-size:0.78rem;color:#607D8B">${NAMA[j]}</td>
+      <td>${badge}</td>
+      <td>${progHtml(pct, st === "Selesai" ? "Selesai" : (st === "Aktif" ? "Aktif" : "Belum Mula"))}</td>
+      <td>${sel}/${total}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('summaryBody').innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+//  MAIN RENDER
+// ═══════════════════════════════════════
+function renderAll() {
+  const aktif = getTahun();
+  renderSidebar(aktif);
+  renderBanner(aktif);
+  renderTimeline(aktif);
+  renderKPI(aktif);
+  renderChart(aktif);
+  renderTable();
+  renderSummary(aktif);
+}
+
+// Init on load
+document.addEventListener('DOMContentLoaded', renderAll);
+</script>
+</body>
+</html>
